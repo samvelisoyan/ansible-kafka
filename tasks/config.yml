@@ -1,0 +1,53 @@
+---
+- name: Create kafka config dir
+  file:
+    path: "{{ kafka_install_dir }}/config"
+    state: directory
+    owner: kafka
+    group: kafka
+    mode: "2770"
+
+- name: Create kafka log dir
+  file:
+    path: "{{ kafka_log_dir }}"
+    state: directory
+    owner: kafka
+    group: kafka
+    mode: "2770"
+
+- name: Setup environment config for kafka service
+  template:
+    dest: "{{ kafka_install_dir }}/config/environment"
+    mode: 0644
+    owner: kafka
+    group: kafka
+    src: environment.j2
+  notify:
+    - restart kafka
+
+- name: configure zookeeper
+  import_tasks: zookeeper.yml
+  when: kafka_configure_zookeeper
+
+- name: Configure Services
+  import_tasks: service.yml
+
+- name: Create server.properties
+  template:
+    dest: "{{ kafka_install_dir }}/config/server.properties"
+    mode: 0640
+    owner: kafka
+    group: kafka
+    src: server.properties.j2
+  notify:
+    - restart kafka
+
+- name: Create log4j.properties
+  copy:
+    dest: "{{ kafka_install_dir }}/config/log4j.properties"
+    mode: 0640
+    owner: kafka
+    group: kafka
+    src: log4j.properties
+  notify:
+    - restart kafka

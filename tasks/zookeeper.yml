@@ -1,0 +1,45 @@
+---
+- name: Create zookeeper log dir
+  file:
+    path: "{{ kafka_zookeeper_log_dir }}"
+    state: directory
+    owner: kafka
+    group: kafka
+    mode: "2770"
+
+- name: Create zookeeper data dir
+  file:
+    path: "{{ kafka_zookeeper_data_dir }}"
+    state: directory
+    owner: kafka
+    group: kafka
+    mode: "2770"
+
+- name: Create zookeeper.properties
+  template:
+    dest: "{{ kafka_install_dir }}/config/zookeeper.properties"
+    mode: 0640
+    owner: kafka
+    group: kafka
+    src: zookeeper.properties.j2
+  notify:
+    - restart zookeeper
+
+- name: Add zookeeper SystemD script
+  template:
+    dest: "{{ zookeeper_sysd_script }}"
+    mode: u+rw,g+rw,o+r
+    src: zookeeper.service.j2
+    owner: kafka
+    group: kafka
+  notify: reload systemd
+
+- name: Ensure zookeeper is started.
+  service:
+    name: zookeeper
+    state: started
+    enabled: "{{ kafka_enabled_on_boot }}"
+  when:
+    - ansible_user_id == "root"
+    - not kafka_disable_install or kafka_instaled
+    - not ansible_check_mode

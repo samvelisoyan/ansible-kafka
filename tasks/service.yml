@@ -1,0 +1,9 @@
+---
+- name: Add Kafka SystemD script
+  template:
+    dest: "{{ sysd_script }}"
+    mode: u+rw,g+rw,o+r
+    src: kafka.service.j2
+    owner: kafka
+    group: kafka
+  notify: reload systemd

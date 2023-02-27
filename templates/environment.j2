@@ -1,0 +1,5 @@
+KAFKA_HEAP_OPTS="{{ kafka_heap_opts }}"
+JMX_PORT="{{ kafka_jmx_port }}"
+MAX_OPEN_FILES="{{ kafka_max_open_files }}"
+KAFKA_JMX_OPTS={{ kafka_jmx_opts }}
+{{ kafka_environment_vars | join("\n") }}

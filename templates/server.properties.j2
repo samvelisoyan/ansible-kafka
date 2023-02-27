@@ -1,0 +1,32 @@
+# {{ ansible_managed }}
+
+broker.id={{ kafka_broker_id }}
+broker.rack={{ kafka_broker_rack }}
+zookeeper.connect={% for host in kafka_zookeeper_hosts -%}{{ host.ip }}:{{ host.port | default('2181') }}{% if not loop.last %},{% endif %}{%- endfor %}
+
+zookeeper.connection.timeout.ms=18000
+replica.fetch.max.bytes=104857600
+message.max.bytes=104857600
+compression.type=producer
+log.dirs={{ kafka_log_dir }}
+log.retention.hours=48
+log.segment.bytes=1073741824
+log.retention.check.interval.ms=300000
+unclean.leader.election.enable=false
+
+# Official Kafka documentation states that when upgrading Kafka brokers, you must fix the inter.broker.protocol.version to the current/old version before upgrading the broker software. This way, all brokers in a cluster (being a mix of old and new broker software) will all communicate internally with the same protocol version. After all brokers have been upgraded to the new Kafka version, then inter.broker.protocol.version can be updated.
+# More info can be found here: https://kafka.apache.org/22/documentation.html#upgrade
+# Having this variable allows us to create playbooks where we can do the upgrade procedure described in the official Kafka documentation.
+inter.broker.protocol.version={{ kafka_inter_broker_protocol_version }}
+
+num.network.threads=3
+num.io.threads=8
+socket.send.buffer.bytes=102400
+socket.receive.buffer.bytes=102400
+socket.request.max.bytes=104857600
+num.partitions=1
+num.recovery.threads.per.data.dir=1
+offsets.topic.replication.factor=1
+transaction.state.log.replication.factor=1
+transaction.state.log.min.isr=1
+group.initial.rebalance.delay.ms=0

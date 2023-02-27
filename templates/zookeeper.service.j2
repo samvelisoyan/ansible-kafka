@@ -1,0 +1,14 @@
+[Unit]
+Description=zookeeper service
+After=network.target network-online.target remote-fs.target
+
+[Service]
+Type=simple
+User=kafka
+ExecStart={{ kafka_install_dir }}/bin/zookeeper-server-start.sh {{ kafka_install_dir }}/config/zookeeper.properties
+ExecStop={{ kafka_install_dir }}/bin/zookeeper-server-stop.sh
+WorkingDirectory={{ kafka_zookeeper_data_dir }}
+Restart=on-abnormal
+
+[Install]
+WantedBy=multi-user.target

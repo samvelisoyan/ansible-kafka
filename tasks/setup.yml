@@ -1,0 +1,42 @@
+---
+- name: create kafka group
+  group:
+    name: kafka
+    system: true
+
+- name: create kafka user
+  user:
+    name: kafka
+    group: kafka
+    system: true
+
+- name: Create kafka install dir
+  file:
+    path: "{{ kafka_install_dir }}"
+    state: directory
+    owner: kafka
+    group: kafka
+    mode: "2770"
+
+- name: "Install {{ kafka_app_java_package }} package (disabling package install={{ kafka_disable_java_install }})"
+  action: >
+    {{ ansible_pkg_mgr }}
+    name={{ kafka_app_java_package }}
+    state=present
+    enablerepo={{ kafka_app_enablerepo | default(omit,true) }}
+  when:
+    - not kafka_disable_java_install
+
+- name: Install Kafka
+  unarchive:
+    src: "https://downloads.apache.org/kafka/{{ kafka_version }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+    dest: "{{ kafka_install_dir }}/"
+    owner: kafka
+    group: kafka
+    mode: "2770"
+    extra_opts: "--strip-components=1"
+    exclude:
+      - config
+    remote_src: yes
+  when:
+    - not ansible_check_mode

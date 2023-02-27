@@ -1,0 +1,40 @@
+---
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: restart zookeeper through systemd
+  become: yes
+  service:
+    name: zookeeper
+    state: restarted
+  listen: "restart zookeeper"
+  when:
+    - not kafka_disable_install or kafka_instaled
+    - not ansible_check_mode
+
+# - name: Ensure zookeeper  is in a running state
+#   service:
+#     name: zookeeper
+#     state: started
+#   register: myserviceDetails
+#   until: myserviceDetails.status.ActiveState == "active"
+#   retries: 10
+#   delay: 20
+#   listen:
+#     - restart kafka
+#     - restart zookeeper
+#   when:
+#     - kafka_configure_zookeeper
+#     - not kafka_disable_install or kafka_instaled
+#     - not ansible_check_mode
+
+- name: restart kafka through systemd
+  become: yes
+  service:
+    name: kafka
+    state: restarted
+  listen: "restart kafka"
+  when:
+    - not kafka_disable_install or kafka_instaled
+    - not ansible_check_mode

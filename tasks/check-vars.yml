@@ -1,0 +1,52 @@
+---
+- name: set Kafka install directory
+  set_fact:
+    kafka_install_dir: "/etc/kafka"
+
+- name: Set systemd user service script
+  set_fact:
+    sysd_script: "{{ sysd_user_services_folder }}/kafka.service"
+
+- name: Set systemd user service script for zookeeper
+  set_fact:
+    zookeeper_sysd_script: "{{ sysd_user_services_folder }}/zookeeper.service"
+  when: kafka_configure_zookeeper
+
+- name: Get proxies settings from environment variables
+  set_fact:
+    kafka_https_proxy: "{{ lookup('env', 'https_proxy') | default(kafka_https_proxy, True) }}"
+    kafka_http_proxy:  "{{ lookup('env', 'http_proxy')  | default(kafka_http_proxy, True) }}"
+
+- name: Disabling proxies from kafka data
+  set_fact:
+    kafka_https_proxy: ""
+    kafka_http_proxy:  ""
+  when: kafka_disable_http_proxies
+
+- name: Check vars | Java Package defined correctly
+  assert:
+    that:
+      - kafka_app_java_package is match('^java-[\d|\.?]+-openjdk$')
+    fail_msg: "{{ kafka_app_java_package }} is NOT Java pakage"
+    success_msg: "{{ kafka_app_java_package }} is Java pakage and will be installed"
+  when: kafka_app_java_package is defined
+
+- name: Check vars | Set Java package version
+  set_fact:
+    kafka_app_java_package: "{{ 'java-11-openjdk' if (ansible_distribution in ['RedHat','CentOS']) else 'openjdk-8-jdk' }}"
+  when: kafka_app_java_package is not defined
+
+- name: Check if Kafka installed
+  stat:
+    path: "{{ kafka_install_dir }}"
+  register: kafka_stat_result
+
+- name: Ensure that kafka not instaled
+  set_fact:
+    kafka_instaled: false
+  when: not kafka_stat_result.stat.exists
+
+- name: Ensure that kafka instaled
+  set_fact:
+    kafka_instaled: true
+  when: kafka_stat_result.stat.exists
